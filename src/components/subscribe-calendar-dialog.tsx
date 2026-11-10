@@ -80,7 +80,6 @@ export function SubscribeCalendarDialog({
       }
 
       setEmail("");
-      setEmail("");
     } catch (err) {
       setError(true);
       setMessage(
@@ -104,7 +103,7 @@ export function SubscribeCalendarDialog({
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Subscribe to DK24</DialogTitle>``
+          <DialogTitle>Subscribe to DK24</DialogTitle>
           <DialogDescription>
             Stay connected with upcoming community events.
           </DialogDescription>

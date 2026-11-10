@@ -185,22 +185,5 @@
     "organizationName": "DK24",
     "posterUrl": "",
     "tags": ["showcase", "community"]
-  },
-  {
-    "id": "evt-2026-12-20-test",
-    "title": "ICS Subscription Test",
-    "startDateTime": "2026-12-20T10:00:00.000Z",
-    "endDateTime": "2026-12-20T12:00:00.000Z",
-    "time": "10:00",
-    "location": "Online",
-    "description": "Testing automatic calendar feed updates.",
-    "registrationLink": "",
-    "joinLink": "",
-    "icon": "calendar",
-    "highlight": false,
-    "color": "green",
-    "organizationName": "DK24",
-    "posterUrl": "",
-    "tags": ["testing"]
   }
 ]
