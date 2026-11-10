@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ComponentProps } from "react";
-import { CalendarPlus, Check, Copy } from "lucide-react";
+import { CalendarPlus, Check, Copy, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 const GOOGLE_CALENDAR_URL =
   "https://calendar.google.com/calendar/u/0/r/settings/addbyurl";
@@ -27,6 +28,10 @@ export function SubscribeCalendarDialog({
   const [feedUrl, setFeedUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState(false);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     setFeedUrl(`${window.location.origin}/api/v1/calendar/subscribe`);
@@ -43,6 +48,51 @@ export function SubscribeCalendarDialog({
     }
   };
 
+  const handleEmailSubscribe = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+    setLoading(true);
+    setMessage("");
+    setError(false);
+
+    try {
+      const response = await fetch("/api/v1/email-subscriptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to subscribe right now.");
+      }
+
+      if (data.status === "already_subscribed") {
+        setError(true);
+        setMessage(data.message);
+      } else {
+        setError(false);
+        setMessage(data.message || "Subscription successful!");
+      }
+
+      setEmail("");
+      setEmail("");
+    } catch (err) {
+      setError(true);
+      setMessage(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -54,19 +104,25 @@ export function SubscribeCalendarDialog({
 
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Subscribe to DK24 Calendar</DialogTitle>
+          <DialogTitle>Subscribe to DK24</DialogTitle>``
           <DialogDescription>
-            Subscribe to our calendar to keep track of upcoming community
-            events.
+            Stay connected with upcoming community events.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Calendar Feed URL</p>
+        <div className="space-y-5">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <CalendarPlus className="h-5 w-5" />
+              <h3 className="font-semibold">Calendar Subscription</h3>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Add DK24 events to Google Calendar, Apple Calendar, or Outlook.
+            </p>
 
             <div className="flex gap-2">
-              <div className="min-w-0 flex-1 break-all rounded-md border bg-muted p-3 text-sm">
+              <div className="min-w-0 flex-1 break-all rounded-md border bg-muted p-3 text-xs">
                 {feedUrl || "Loading feed URL..."}
               </div>
 
@@ -86,33 +142,72 @@ export function SubscribeCalendarDialog({
               </Button>
             </div>
 
-            {copied && (
-              <output className="text-sm text-green-600">Copied!</output>
-            )}
+            {copied && <p className="text-sm text-green-600">Copied!</p>}
 
             {copyError && (
               <p className="text-sm text-destructive" role="alert">
                 Unable to copy the URL. Please copy it manually.
               </p>
             )}
+
+            <Button
+              type="button"
+              className="w-full"
+              disabled={!feedUrl}
+              onClick={() =>
+                window.open(
+                  GOOGLE_CALENDAR_URL,
+                  "_blank",
+                  "noopener,noreferrer",
+                )
+              }
+            >
+              <CalendarPlus className="mr-2 h-4 w-4" />
+              Add to Google Calendar
+            </Button>
           </div>
 
-          <Button
-            type="button"
-            className="w-full"
-            disabled={!feedUrl}
-            onClick={() =>
-              window.open(GOOGLE_CALENDAR_URL, "_blank", "noopener,noreferrer")
-            }
-          >
-            <CalendarPlus className="mr-2 h-4 w-4" />
-            Add to Google Calendar
-          </Button>
+          <div className="border-t pt-5 space-y-3">
+            <div className="flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              <h3 className="font-semibold">Email Subscription</h3>
+            </div>
 
-          <p className="text-xs text-muted-foreground">
-            You can also paste the copied URL into Apple Calendar, Outlook, or
-            another application that supports subscribed calendars.
-          </p>
+            <p className="text-sm text-muted-foreground">
+              Receive upcoming DK24 event updates twice a month.
+            </p>
+
+            <form onSubmit={handleEmailSubscribe} className="space-y-3">
+              <Input
+                type="email"
+                placeholder="Enter your email address"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                maxLength={255}
+                required
+                disabled={loading}
+              />
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={loading || !email.trim()}
+              >
+                {loading ? "Subscribing..." : "Subscribe via Email"}
+              </Button>
+            </form>
+
+            {message && (
+              <p
+                className={`text-sm ${
+                  error ? "text-destructive" : "text-green-600"
+                }`}
+                role={error ? "alert" : "status"}
+              >
+                {message}
+              </p>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>
